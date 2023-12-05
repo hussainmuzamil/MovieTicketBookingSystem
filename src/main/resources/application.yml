@@ -1,0 +1,20 @@
+application:
+  security:
+    jwt:
+      secret-key : e243ff66df6ab45aa9e0c22da3507e5d89820ed30b6260d3e445e6137eda43c1
+      expiration : 86400000
+      refresh-token :
+        expiration : 604800000
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/postgres
+    username: postgres
+    password: 12345678
+    driverClassName: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      ddl-auto: update
+    show-sql: true
