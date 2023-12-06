@@ -1,4 +1,4 @@
-package com.example.movieticketingsystem.entity;
+package com.example.movieticketingsystem.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,4 +12,6 @@ import lombok.Setter;
 public class SignUpRequest {
     private String email;
     private String password;
+    private boolean mfaEnabled;
+//    private Role role;
 }

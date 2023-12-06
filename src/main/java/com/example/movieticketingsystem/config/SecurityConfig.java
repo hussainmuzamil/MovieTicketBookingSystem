@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((request)->request
                         .requestMatchers("/api/v1/auth/authenticate").permitAll()
                         .requestMatchers("/api/v1/auth/registration").permitAll()
+                        .requestMatchers("/api/v1/auth/verify").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex->ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

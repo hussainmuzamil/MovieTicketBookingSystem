@@ -1,4 +1,4 @@
-package com.example.movieticketingsystem.entity;
+package com.example.movieticketingsystem.dto;
 
 
 import lombok.*;
@@ -11,4 +11,5 @@ import lombok.*;
 public class AuthenticationRequest {
     private String email;
     private String password;
+//    private boolean mfaEnabled;
 }

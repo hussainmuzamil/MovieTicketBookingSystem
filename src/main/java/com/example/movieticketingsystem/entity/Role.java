@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,8 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-@Builder
-public class Role extends Auditable<Role> {
+public class Role extends Auditable<Role>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,32 +32,7 @@ public class Role extends Auditable<Role> {
 
     @OneToMany(mappedBy = "role")
     private List<AppUser> appUsers;
-    //    @NotNull
-//    private Date createdAt;
+
     @NotNull
     private boolean isActive;
-
-//    @LastModifiedDate
-//    @Column(insertable = false)
-//    private LocalDateTime modifiedDate;
-//
-//    @Column(
-//            updatable = false,
-//            nullable = false
-//    )
-//    @CreatedDate
-//    private LocalDateTime createdDate;
-//
-//    @LastModifiedBy
-//    @Column(insertable = false)
-//    private String modifiedBy;
-
-//    @CreatedBy
-//    @Column(
-//            updatable = false,
-//            nullable = false
-//    )
-//    private String createdBy;
-
-//    private Date modifiedAt;
 }

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "authentication",uniqueConstraints = {@UniqueConstraint(columnNames = {"email","isActive"}) })
+@Table(name = "user",uniqueConstraints = {@UniqueConstraint(columnNames = {"email","isActive"}) })
 @EntityListeners(AuditingEntityListener.class)
 public class AppUser extends Auditable<AppUser> implements UserDetails   {
     @Id
@@ -39,50 +39,28 @@ public class AppUser extends Auditable<AppUser> implements UserDetails   {
 
     @Email(message = "Please enter a valid email Id", regexp="^[a-zA-Z0-9._-]+@[a-zA-Z0-9-]+\\.[a-zA-Z.]{2,5}")
     @jakarta.validation.constraints.NotNull(message = "Email Already exist")
-//    @Column(unique = true)
     private String email;
 
+    private String username;
     @OneToMany(mappedBy = "appUser",fetch = FetchType.EAGER)
     private List<Token> token;
 
     @NotNull
     private boolean isActive;
-    //    private Date modifiedAt;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Role role;
 
-//    @LastModifiedDate
-//    @Column(insertable = false)
-//    private LocalDateTime modifiedDate;
-//
-//    @CreatedDate
-//    @Column(
-//            updatable = false,
-//            nullable = false
-//    )
-//    private LocalDateTime createdDate;
-//
-//    @LastModifiedBy
-//    @Column(insertable = false)
-//    private String modifiedBy;
+    private boolean mfaEnabled;
 
-//    @CreatedBy
-//    @Column(
-//            updatable = false,
-//            nullable = false
-//    )
-//    private String addedBy;
-
-
+    private String secret;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Arrays.asList(role).stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
-
     }
-
     @Override
     public String getUsername() {
         return email;
@@ -102,7 +80,6 @@ public class AppUser extends Auditable<AppUser> implements UserDetails   {
     public boolean isCredentialsNonExpired() {
         return true;
     }
-
     @Override
     public boolean isEnabled() {
         return isActive;

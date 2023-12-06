@@ -1,20 +1,25 @@
 package com.example.movieticketingsystem.service;
 
 import com.example.movieticketingsystem.config.JWTService;
+import com.example.movieticketingsystem.dto.AuthenticationRequest;
+import com.example.movieticketingsystem.dto.JwtAuthenticationResponse;
+import com.example.movieticketingsystem.dto.SignUpRequest;
+import com.example.movieticketingsystem.dto.VerificationRequest;
 import com.example.movieticketingsystem.entity.*;
 import com.example.movieticketingsystem.repository.RoleRepository;
 import com.example.movieticketingsystem.repository.TokenRepository;
 import com.example.movieticketingsystem.repository.UserRepository;
+import com.example.movieticketingsystem.tfa.TwoFactorAuthenticationService;
 import com.example.movieticketingsystem.util.ResponseHandler;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.RepresentationModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,6 +40,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository repository;
+    private final TwoFactorAuthenticationService twoFactorAuthenticationService;
     @Override
     public ResponseEntity<Object> signIn(AuthenticationRequest authRequest) {
         if(authRequest == null){
@@ -61,11 +67,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if(refreshToken == null){
             log.warn("unable to regenerate token with username {}",authRequest.getEmail());
         }
-        JwtAuthenticationResponse authenticationResponse = new JwtAuthenticationResponse();
-        authenticationResponse.setToken(jwt);
-        authenticationResponse.setRefreshToken(refreshToken);
+        JwtAuthenticationResponse response = new JwtAuthenticationResponse();
+        if(user.isMfaEnabled()){
+            response = JwtAuthenticationResponse.builder()
+                    .refreshToken("")
+                    .token("")
+                    .mfaEnabled(user.isMfaEnabled())
+                    .secret(user.getSecret())
+                    .build();
+        }
+        response = JwtAuthenticationResponse.builder()
+                .refreshToken(refreshToken)
+                .token(jwt)
+                .mfaEnabled(user.isMfaEnabled())
+                .build();
         log.info("got authentication response");
-        return ResponseHandler.responseBuilder("auth response",HttpStatus.OK,authenticationResponse,linkTo(AppUser.class).slash(user.getId()).withSelfRel());
+        return ResponseHandler.responseBuilder("auth response",HttpStatus.OK,response,linkTo(AppUser.class).slash(user.getId()).withSelfRel());
     }
 
     @Override
@@ -83,6 +100,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Role role = repository.findByName("USER").get();
         u1.setRole(role);
         u1.setActive(true);
+        u1.setMfaEnabled(signUpRequest.isMfaEnabled());
+        if(signUpRequest.isMfaEnabled()){
+            u1.setSecret(twoFactorAuthenticationService.generateNewSecret());
+        }
 //        u1.setAddedBy(u2);
 
         log.info("saving user authentication info");
@@ -91,7 +112,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Something went wrong in saving user");
         }
         log.info("saved user authentication");
-        return ResponseHandler.responseBuilder("Successfully created User",HttpStatus.CREATED,checkAuthentication,linkTo(AppUser.class).slash(u1.getId()).withSelfRel());
+        var jwtToken = jwtService.generateToken(u1);
+        var refreshToken = jwtService.regenerateToken(new HashMap<>(),checkAuthentication);
+        var response = JwtAuthenticationResponse.builder()
+                .refreshToken(refreshToken)
+                .token(jwtToken)
+                .mfaEnabled(checkAuthentication.isMfaEnabled())
+                .secret(checkAuthentication.getSecret())
+                .build();
+        return ResponseHandler.responseBuilder("Successfully created User",HttpStatus.CREATED,response,linkTo(AppUser.class).slash(u1.getId()).withSelfRel());
 
     }
 
@@ -99,6 +128,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void refreshToken(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
 
     }
+
+    @Override
+    public ResponseEntity<Object> verifyCode(VerificationRequest verificationRequest) {
+        AppUser user = userRepository.findAppUserByEmail(verificationRequest.getEmail())
+                .orElseThrow(()->new EntityNotFoundException(String.format("No user exist %s",verificationRequest.getEmail())));
+        if(twoFactorAuthenticationService.isOtpNotValid(user.getSecret(), verificationRequest.getOtpCode())){
+            throw new BadCredentialsException("Code is not correct");
+        }else{
+            var jwtToken = jwtService.generateToken(user);
+            var refreshToken = jwtService.regenerateToken(new HashMap<>(),user);
+            return ResponseHandler.responseBuilder("token generated",HttpStatus.OK,JwtAuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .mfaEnabled(user.isMfaEnabled())
+                    .refreshToken(refreshToken)
+                    .build(),linkTo(AppUser.class).slash(user.getId()).withSelfRel());
+        }
+    }
+
     private void saveUserToken(AppUser checkAppUser,String jwtToken) {
         var token = Token.builder()
                 .appUser(checkAppUser)

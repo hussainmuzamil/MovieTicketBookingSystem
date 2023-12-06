@@ -1,5 +1,6 @@
 package com.example.movieticketingsystem.entity;
 
+import com.example.movieticketingsystem.config.Auditable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +12,7 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-public class Token {
+public class Token extends Auditable<Token> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
