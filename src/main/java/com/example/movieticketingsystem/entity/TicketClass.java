@@ -6,25 +6,23 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
-@NoArgsConstructor
+import java.util.Set;
+
 @Entity
-@Table(name = "ticket")
+@Table(name = "ticket_class")
 @Getter
 @Setter
-public class Ticket {
-
+@AllArgsConstructor
+@NoArgsConstructor
+public class TicketClass {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
-    private TicketClass ticketClass;
+    private int price;
 
-    @OneToOne
-    private Schedule schedule;
+    private SeatType seatType;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    private AppUser user;
-
+    @ManyToMany(mappedBy = "ticketClassSet")
+    private Set<Cinema> cinemaSet;
 }

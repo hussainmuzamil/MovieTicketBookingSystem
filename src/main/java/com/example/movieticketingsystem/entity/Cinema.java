@@ -1,12 +1,11 @@
 package com.example.movieticketingsystem.entity;
 
 import com.example.movieticketingsystem.config.Auditable;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "cinema")
@@ -23,9 +22,15 @@ public class Cinema extends Auditable<Cinema> {
 
     private String city;
 
-    @OneToMany(mappedBy = "movie")
+    @OneToMany(mappedBy = "cinema")
     private List<Screen> screenList;
 
     @OneToMany(mappedBy = "cinema")
     private List<Schedule> scheduleList;
+
+    @ManyToMany
+    @JoinTable(name = "cinema_ticketClass",
+            joinColumns = @JoinColumn(name = "cinema_id")
+            ,inverseJoinColumns = @JoinColumn(name = "ticket_class_id"))
+    private Set<TicketClass> ticketClassSet = new HashSet<>();
 }

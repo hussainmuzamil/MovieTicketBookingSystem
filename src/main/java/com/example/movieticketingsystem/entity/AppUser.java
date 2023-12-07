@@ -57,6 +57,9 @@ public class AppUser extends Auditable<AppUser> implements UserDetails   {
 
     private String secret;
 
+    @OneToMany(mappedBy = "user",fetch = FetchType.LAZY)
+    private List<Ticket> tickets;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Arrays.asList(role).stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());

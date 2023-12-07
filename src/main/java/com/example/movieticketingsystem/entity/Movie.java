@@ -31,4 +31,5 @@ public class Movie extends Auditable<Movie> {
 
     @OneToMany(mappedBy = "movie",cascade = CascadeType.ALL)
     private List<Schedule> scheduleList;
+
 }

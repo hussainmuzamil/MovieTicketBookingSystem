@@ -27,15 +27,14 @@ public class MovieTicketingSystemApplication implements CommandLineRunner {
 		if(!repository.findByName("USER").isPresent()){
 			Role role = new Role();
 			role.setActive(true);
-//			role.setCreatedBy("hussainmuzamil199@gmail.com");
-
+			role.setAddedBy("hussainmuzamil199@gmail.com");
 			role.setName("USER");
 			repository.save(role);
 		}
 		if(!repository.findByName("ADMIN").isPresent()){
 			Role role = new Role();
 			role.setActive(true);
-//			role.setCreatedBy("hussainmuzamil199@gmail.com");
+			role.setAddedBy("hussainmuzamil199@gmail.com");
 			role.setName("ADMIN");
 			repository.save(role);
 		}

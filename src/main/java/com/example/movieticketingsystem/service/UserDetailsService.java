@@ -1,7 +1,9 @@
-package com.example.movieticketingsystem.repository;
+package com.example.movieticketingsystem.service;
 
 import com.example.movieticketingsystem.entity.AppUser;
 import com.example.movieticketingsystem.entity.Role;
+import com.example.movieticketingsystem.repository.RoleRepository;
+import com.example.movieticketingsystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
